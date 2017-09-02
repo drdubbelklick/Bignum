@@ -28,20 +28,81 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.numberToFactorize = new System.Windows.Forms.TextBox();
+            this.numberToFactorizeLabel = new System.Windows.Forms.Label();
+            this.primesListBox = new System.Windows.Forms.ListBox();
+            this.startButton = new System.Windows.Forms.Button();
+            this.stopButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
+            // 
+            // numberToFactorize
+            // 
+            this.numberToFactorize.Location = new System.Drawing.Point(10, 40);
+            this.numberToFactorize.Name = "numberToFactorize";
+            this.numberToFactorize.Size = new System.Drawing.Size(262, 20);
+            this.numberToFactorize.TabIndex = 1;
+            // 
+            // numberToFactorizeLabel
+            // 
+            this.numberToFactorizeLabel.AutoSize = true;
+            this.numberToFactorizeLabel.Location = new System.Drawing.Point(11, 19);
+            this.numberToFactorizeLabel.Name = "numberToFactorizeLabel";
+            this.numberToFactorizeLabel.Size = new System.Drawing.Size(101, 13);
+            this.numberToFactorizeLabel.TabIndex = 2;
+            this.numberToFactorizeLabel.Text = "Heltal att faktorisera";
+            // 
+            // primesListBox
+            // 
+            this.primesListBox.FormattingEnabled = true;
+            this.primesListBox.Location = new System.Drawing.Point(10, 119);
+            this.primesListBox.Name = "primesListBox";
+            this.primesListBox.Size = new System.Drawing.Size(258, 160);
+            this.primesListBox.TabIndex = 3;
+            // 
+            // startButton
+            // 
+            this.startButton.Location = new System.Drawing.Point(37, 81);
+            this.startButton.Name = "startButton";
+            this.startButton.Size = new System.Drawing.Size(75, 23);
+            this.startButton.TabIndex = 4;
+            this.startButton.Text = "Starta";
+            this.startButton.UseVisualStyleBackColor = true;
+            this.startButton.Click += new System.EventHandler(this.startButton_Click);
+            // 
+            // stopButton
+            // 
+            this.stopButton.Location = new System.Drawing.Point(149, 81);
+            this.stopButton.Name = "stopButton";
+            this.stopButton.Size = new System.Drawing.Size(75, 23);
+            this.stopButton.TabIndex = 5;
+            this.stopButton.Text = "Stopp!";
+            this.stopButton.UseVisualStyleBackColor = true;
+            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
             // 
             // Factorization
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 261);
+            this.ClientSize = new System.Drawing.Size(284, 306);
+            this.Controls.Add(this.stopButton);
+            this.Controls.Add(this.startButton);
+            this.Controls.Add(this.primesListBox);
+            this.Controls.Add(this.numberToFactorizeLabel);
+            this.Controls.Add(this.numberToFactorize);
             this.Name = "Factorization";
             this.Text = "Factorization";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
+
+        private System.Windows.Forms.TextBox numberToFactorize;
+        private System.Windows.Forms.Label numberToFactorizeLabel;
+        private System.Windows.Forms.ListBox primesListBox;
+        private System.Windows.Forms.Button startButton;
+        private System.Windows.Forms.Button stopButton;
     }
 }
 

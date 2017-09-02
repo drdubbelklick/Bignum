@@ -16,5 +16,15 @@ namespace BIGNUM
         {
             InitializeComponent();
         }
+
+        private void startButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void stopButton_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
