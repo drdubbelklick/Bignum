@@ -42,13 +42,13 @@ namespace BIGNUM
                 List<uint> la = new List<uint>();
                 List<uint> lb = new List<uint>();
 
-                la.Add(uint.MaxValue); la.Add(9);
+                la.Add( (uint)(5123456789 % BigNumber.BASE) ); la.Add((uint)(5123456789 / BigNumber.BASE));
+                //lb.Add(31); lb.Add(1);
                 
                 a = new BigNumber(la);
-                string s = a.ToString();
                 b = new BigNumber(lb);
-                c = a + b;
-                string t = c.ToString();
+                
+                string t = b.ToString();
                 //a = new BigNumber("5123456789");
                 //b = new BigNumber("5123456789");
             }

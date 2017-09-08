@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace BIGNUM
 {
     /// <summary>
-    /// class for doing big number arithmetic
+    /// class for doing arithmetics on non-negative large integers
     /// </summary>
     public class BigNumber
     {
@@ -21,10 +21,9 @@ namespace BIGNUM
         /// </summary>
         static uint HALFWORDMAX = (uint)0xFFFFFFFF;
         /// <summary>
-        /// true or false depending on the number is <0 or >= 0
+        /// the base of our operation
         /// </summary>
-        public bool IsNegative { get; set; }
-
+        public static ulong BASE = (ulong)HALFWORDMAX + (ulong)1;
         /// <summary>
         /// Returns true if the number is even else false
         /// </summary>
@@ -100,8 +99,10 @@ namespace BIGNUM
         /// private constructor that allows the caller to 
         /// give an already filled list of uint:s as argument
         /// </summary>
-        public BigNumber(List<uint> numList) //TODO temporarily open up this constructor. it should be private
+        public BigNumber(List<uint> numList) //HACK temporarily opened up this constructor as public pending constructor that accepts a string.
         {
+            if (numList == null)
+                throw new ArgumentNullException("Input list is null");
             _number.AddRange(numList);
             Trim();
         }
@@ -114,11 +115,13 @@ namespace BIGNUM
         public override string ToString()
         {
             string res = string.Empty;
-            //ulong val = 0;
-                      
+            
             for (int i = 0; i < _number.Count; i++)
             {
-                res = _number[i].ToString("D") + res;
+                // here we pad the number with leading zeros to make it
+                // ten digits long, equal to the decimal equivalent of
+                // 0xFFFFFFFF, i.e. uint.MaxValue.ToString().Length
+                res = _number[i].ToString("D10")  + res;
             }
 
             return res;
@@ -155,7 +158,7 @@ namespace BIGNUM
 
         /// <summary>
         /// Trims elements that are zero from the BigNumber, making
-        /// it as compact as possible. The trimming is done in-place.
+        /// it as compact as possible. A trimmed object is returned.
         /// </summary>
         void Trim()
         {
@@ -215,6 +218,121 @@ namespace BIGNUM
             }
             BigNumber res = new BigNumber(resList);
             return res;
+        }
+
+        public static BigNumber operator -(BigNumber lhs, BigNumber rhs)
+        {
+            throw new NotImplementedException("Will be implemented soon...");
+            // The number having the longest list determines the size
+            // of the resulting list
+            lhs.Trim();
+            rhs.Trim();
+            int newSize = Math.Max(lhs.Size, rhs.Size);
+            List<uint> resList = new List<uint>(newSize);
+            uint valLhs, valRhs;
+            uint borrow = 0;
+
+            for (int i = 0; i < newSize; i++)
+            {
+                if (lhs.Size < i)
+                    valLhs = 0;
+                else
+                    valLhs = lhs.Number[i];
+                if (rhs.Size < i)
+                    valRhs = 0;
+                else
+                    valRhs = rhs.Number[i];
+
+                long diff = (long)valLhs - (long)valRhs - (long)borrow;
+
+                if (diff < 0)
+                {
+                    borrow = 1;
+                    diff += (long)BASE;
+                }
+                else
+                {
+                    borrow = 0;
+                }
+                Debug.Assert(diff >= 0 && diff <= uint.MaxValue);
+                resList.Add((uint)diff);
+            }
+
+            BigNumber res = new BigNumber(resList);
+
+            if (borrow == 1)
+                throw new ArithmeticException("Arithmetical underflow");
+            return res;
+        }
+        #endregion
+
+        #region Comparison
+
+        /// <summary>
+        /// greater than operator
+        /// </summary>
+        public static bool operator>(BigNumber lhs, BigNumber rhs)
+        {
+            lhs.Trim();
+            rhs.Trim();
+
+            int size = Math.Max(lhs.Number.Count, rhs.Number.Count);
+
+            if (lhs.Number.Count != rhs.Number.Count)
+                return lhs.Number.Count > rhs.Number.Count;
+            // Both are of equal sizes.
+            for (int i = lhs.Number.Count - 1; i >= 0;  i--)
+            {
+                if (lhs.Number[i] > rhs.Number[i])
+                    return true;
+            }
+            return false; // all numbers are equal
+        }
+
+        /// <summary>
+        /// less than operator
+        /// </summary>
+        public static bool operator<(BigNumber lhs, BigNumber rhs)
+        {
+            lhs.Trim();
+            rhs.Trim();
+
+            int size = Math.Max(lhs.Number.Count, rhs.Number.Count);
+
+            if (lhs.Number.Count != rhs.Number.Count)
+                return lhs.Number.Count < rhs.Number.Count;
+            // Both are of equal sizes.
+            for (int i = lhs.Number.Count - 1; i >= 0; i--)
+            {
+                if (lhs.Number[i] < rhs.Number[i])
+                    return true;
+            }
+            return false; // all numbers are equal
+        }
+
+        /// <summary>
+        /// equality operator
+        /// </summary>
+        public static bool operator==(BigNumber lhs, BigNumber rhs)
+        {
+            lhs.Trim();
+            rhs.Trim();
+            if (lhs.Number.Count != rhs.Number.Count)
+                return false;
+            for (int i = 0; i < lhs.Number.Count; i++)
+            {
+                if (lhs.Number[i] != rhs.Number[i])
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// inequality operator
+        /// </summary>
+        public static bool operator!=(BigNumber lhs, BigNumber rhs)
+        {
+            return !(lhs == rhs);
         }
 
         #endregion
