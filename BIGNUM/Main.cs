@@ -35,6 +35,47 @@ namespace BIGNUM
         /// </summary>
         private void startButton_Click(object sender, EventArgs e)
         {
+            BigNumber a,b,c;
+
+            try
+            {
+                List<uint> la = new List<uint>();
+                List<uint> lb = new List<uint>();
+
+                la.Add(uint.MaxValue); la.Add(9);
+                
+                a = new BigNumber(la);
+                string s = a.ToString();
+                b = new BigNumber(lb);
+                c = a + b;
+                string t = c.ToString();
+                //a = new BigNumber("5123456789");
+                //b = new BigNumber("5123456789");
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, 
+                    Properties.Settings.Default.ProgramName, 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (NullReferenceException ex)
+            {
+                MessageBox.Show(ex.Message,
+                    Properties.Settings.Default.ProgramName,
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (FormatException ex)
+            {
+                MessageBox.Show(ex.Message,
+                    Properties.Settings.Default.ProgramName,
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, 
+                    Properties.Settings.Default.ProgramName, 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             _stopExecution = false;
         }
 
@@ -45,5 +86,6 @@ namespace BIGNUM
         {
             _stopExecution = true;
         }
+
     }
 }

@@ -28,19 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.numberToFactorize = new System.Windows.Forms.TextBox();
             this.numberToFactorizeLabel = new System.Windows.Forms.Label();
             this.primesListBox = new System.Windows.Forms.ListBox();
             this.startButton = new System.Windows.Forms.Button();
             this.stopButton = new System.Windows.Forms.Button();
+            this.numberToFactorize = new System.Windows.Forms.NumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.numberToFactorize)).BeginInit();
             this.SuspendLayout();
-            // 
-            // numberToFactorize
-            // 
-            this.numberToFactorize.Location = new System.Drawing.Point(10, 40);
-            this.numberToFactorize.Name = "numberToFactorize";
-            this.numberToFactorize.Size = new System.Drawing.Size(262, 20);
-            this.numberToFactorize.TabIndex = 1;
             // 
             // numberToFactorizeLabel
             // 
@@ -79,30 +73,37 @@
             this.stopButton.UseVisualStyleBackColor = true;
             this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
             // 
+            // numberToFactorize
+            // 
+            this.numberToFactorize.Location = new System.Drawing.Point(10, 48);
+            this.numberToFactorize.Name = "numberToFactorize";
+            this.numberToFactorize.Size = new System.Drawing.Size(257, 20);
+            this.numberToFactorize.TabIndex = 6;
+            // 
             // Factorization
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 306);
+            this.Controls.Add(this.numberToFactorize);
             this.Controls.Add(this.stopButton);
             this.Controls.Add(this.startButton);
             this.Controls.Add(this.primesListBox);
             this.Controls.Add(this.numberToFactorizeLabel);
-            this.Controls.Add(this.numberToFactorize);
             this.Name = "Factorization";
             this.Text = "Factorization";
+            ((System.ComponentModel.ISupportInitialize)(this.numberToFactorize)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox numberToFactorize;
         private System.Windows.Forms.Label numberToFactorizeLabel;
         private System.Windows.Forms.ListBox primesListBox;
         private System.Windows.Forms.Button startButton;
         private System.Windows.Forms.Button stopButton;
+        private System.Windows.Forms.NumericUpDown numberToFactorize;
     }
 }
 
