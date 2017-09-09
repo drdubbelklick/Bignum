@@ -20,10 +20,15 @@ namespace BIGNUM
         /// Largest unsigned integer we store in each slot
         /// </summary>
         static uint HALFWORDMAX = (uint)0xFFFFFFFF;
+        //static uint HALFWORDMAX = (uint)9;
         /// <summary>
         /// the base of our operation
         /// </summary>
         public static ulong BASE = (ulong)HALFWORDMAX + (ulong)1;
+        //public static ulong BASE = (ulong)1000000000;
+        //public static ulong BASE = (ulong)10;
+        #region Properties
+
         /// <summary>
         /// Returns true if the number is even else false
         /// </summary>
@@ -38,6 +43,16 @@ namespace BIGNUM
                     return (_number[0] & 0x1) == 0x0;
             }
         }
+
+        /// <summary>
+        /// true or false depending on the number is negative or greater 
+        /// than or equal to zero
+        /// </summary>
+        public bool IsNegative { get; set; }
+
+        #endregion
+
+        #region Constructors
 
         /// <summary>
         /// default constructor, that 
@@ -57,6 +72,7 @@ namespace BIGNUM
         /// </exception>
         public BigNumber(string num)
         {
+            throw new NotImplementedException("Not yet finished");
             if (string.IsNullOrEmpty(num) || !num.IsValidNumber())
                 throw new ArgumentException("Parameter must only consist of digits 0..9");
             else
@@ -107,25 +123,9 @@ namespace BIGNUM
             Trim();
         }
 
-        /// <summary>
-        /// Overrides ToString()
-        /// </summary>
-        /// <returns>the internal number as a string representation</returns>
-        /// <exception cref="FormatException">is thrown by base.ToString(), see documentation</exception>
-        public override string ToString()
-        {
-            string res = string.Empty;
-            
-            for (int i = 0; i < _number.Count; i++)
-            {
-                // here we pad the number with leading zeros to make it
-                // ten digits long, equal to the decimal equivalent of
-                // 0xFFFFFFFF, i.e. uint.MaxValue.ToString().Length
-                res = _number[i].ToString("D10")  + res;
-            }
+        #endregion
 
-            return res;
-        }
+        #region Properties
 
         /// <summary>
         /// Property for outside access to the internal list of integers composing this BigNumber.
@@ -156,14 +156,47 @@ namespace BIGNUM
             }
         }
 
+        #endregion
+
+        /// <summary>
+        /// Overrides ToString()
+        /// </summary>
+        /// <returns>the internal number as a string representation</returns>
+        /// <exception cref="FormatException">is thrown by base.ToString(), see documentation</exception>
+        /// 
+        public override string ToString()
+        {
+            string res = string.Empty;
+            
+            for (int i = 0; i < _number.Count; i++)
+            {
+                // here we pad the number with leading zeros to make it
+                // ten digits long, equal to the decimal equivalent of
+                // 0xFFFFFFFF, i.e. uint.MaxValue.ToString().Length
+                res = _number[i].ToString("D10") + res;
+            }
+
+            if (IsNegative)
+                res = "-" + res;
+            return res;
+        }
+
         /// <summary>
         /// Trims elements that are zero from the BigNumber, making
         /// it as compact as possible. A trimmed object is returned.
         /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// when the argument to remove an element is less than zero or
+        /// the argument is greater than or equal to the argument
+        /// is greater than or equal to the number of elements in 
+        /// the underlying data structure for BigNumber or
+        /// there is no data in the underlying data structure at all
+        /// </exception>
         void Trim()
         {
             int nSize = _number.Count;
-
+            if (nSize == 0)
+                throw new ArgumentOutOfRangeException("Number contains no data");
             while (nSize > 0 && _number[nSize - 1] == 0)
             {
                 _number.RemoveAt(nSize - 1);
@@ -220,53 +253,80 @@ namespace BIGNUM
             return res;
         }
 
-        public static BigNumber operator -(BigNumber lhs, BigNumber rhs)
+        public static BigNumber operator-(BigNumber lhs, BigNumber rhs)
         {
-            throw new NotImplementedException("Will be implemented soon...");
-            // The number having the longest list determines the size
-            // of the resulting list
-            lhs.Trim();
-            rhs.Trim();
-            int newSize = Math.Max(lhs.Size, rhs.Size);
-            List<uint> resList = new List<uint>(newSize);
-            uint valLhs, valRhs;
-            uint borrow = 0;
+            if (lhs < rhs)
+                return -(rhs - lhs);
 
-            for (int i = 0; i < newSize; i++)
+            BigNumber res;
+
+            try
             {
-                if (lhs.Size < i)
-                    valLhs = 0;
-                else
-                    valLhs = lhs.Number[i];
-                if (rhs.Size < i)
-                    valRhs = 0;
-                else
-                    valRhs = rhs.Number[i];
+                lhs.Trim();
+                rhs.Trim();
+                // The number having the longest list determines the size
+                // of the resulting list
+                int newSize = Math.Max(lhs.Size, rhs.Size);
+                List<uint> resList = new List<uint>(newSize);
+                uint valLhs, valRhs;
+                uint borrow = 0;
 
-                long diff = (long)valLhs - (long)valRhs - (long)borrow;
+                for (int i = 0; i < newSize; i++)
+                {
+                    if (lhs.Size <= i)
+                        valLhs = 0;
+                    else
+                        valLhs = lhs.Number[i];
+                    if (rhs.Size <= i)
+                        valRhs = 0;
+                    else
+                        valRhs = rhs.Number[i];
 
-                if (diff < 0)
-                {
-                    borrow = 1;
-                    diff += (long)BASE;
+                    long diff = (long)valLhs - (long)valRhs - (long)borrow;
+
+                    if (diff < 0)
+                    {
+                        borrow = 1;
+                        diff += (long)BASE;
+                    }
+                    else
+                    {
+                        borrow = 0;
+                    }
+                    Debug.Assert(diff >= 0 && diff <= uint.MaxValue);
+                    resList.Add((uint)diff);
                 }
-                else
-                {
-                    borrow = 0;
-                }
-                Debug.Assert(diff >= 0 && diff <= uint.MaxValue);
-                resList.Add((uint)diff);
+                Debug.Assert(borrow == 0, "Error in implementation of binary - : there should not be any borrow at the end of the loop.");
+                res = new BigNumber(resList);
+                res.IsNegative = (borrow == 1);
+                return res;
             }
-
-            BigNumber res = new BigNumber(resList);
-
-            if (borrow == 1)
-                throw new ArithmeticException("Arithmetical underflow");
-            return res;
+            catch (ArgumentOutOfRangeException)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
         #endregion
 
-        #region Comparison
+        #region Operators
+
+        /// <summary>
+        /// Unary minus
+        /// </summary>
+        public static BigNumber operator-(BigNumber lhs)
+        {
+            //TODO: is this a proper solution???
+
+            BigNumber res = new BigNumber(lhs);
+
+            res.IsNegative = !lhs.IsNegative;
+
+            return res;
+        }
 
         /// <summary>
         /// greater than operator
@@ -290,12 +350,48 @@ namespace BIGNUM
         }
 
         /// <summary>
+        /// Implements the operator >= between two operators,
+        /// returning true if this is the case, else false
+        /// </summary>
+        public static bool operator >=(BigNumber lhs, BigNumber rhs)
+        {
+            //TODO better implementation of this for speed
+            if (lhs < rhs)
+                return false;
+            if (lhs != rhs)
+                return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Implements the operator <= between two operators,
+        /// returning true if this is the case, else false
+        /// </summary>
+        public static bool operator <=(BigNumber lhs, BigNumber rhs)
+        {
+            //TODO better implementation of this for speed
+            if (lhs > rhs)
+                return false;
+            if (lhs != rhs)
+                return false;
+            return true;
+        }
+
+        /// <summary>
         /// less than operator
         /// </summary>
+        /// <exception cref="ArgumentException">
+        /// thrown when either of the operands have no data
+        /// </exception>
         public static bool operator<(BigNumber lhs, BigNumber rhs)
         {
             lhs.Trim();
             rhs.Trim();
+
+            if (lhs.Number.Count == 0)
+                throw new ArgumentException("Left hand operand has no data");
+            if (rhs.Number.Count == 0)
+                throw new ArgumentException("Right hand operand has no data");
 
             int size = Math.Max(lhs.Number.Count, rhs.Number.Count);
 
@@ -332,6 +428,7 @@ namespace BIGNUM
         /// </summary>
         public static bool operator!=(BigNumber lhs, BigNumber rhs)
         {
+            //TODO optimize this
             return !(lhs == rhs);
         }
 
