@@ -25,8 +25,7 @@ namespace BIGNUM
         /// the base of our operation
         /// </summary>
         public static ulong BASE = (ulong)HALFWORDMAX + (ulong)1;
-        //public static ulong BASE = (ulong)1000000000;
-        //public static ulong BASE = (ulong)10;
+
         #region Properties
 
         /// <summary>
@@ -65,40 +64,60 @@ namespace BIGNUM
         /// <summary>
         /// constructor
         /// </summary>
-        /// <param name="num">consists of 0..9, hence base 10</param>
+        /// <param name="num">consists of [-]0..9, hence base 10</param>
         /// <exception cref="ArgumentException">
-        ///     thrown if there are characters other than 0..9 
+        ///     thrown if there are characters other than [-]0..9 
         ///     in the input argument
         /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// thrown when the index to the Substring call on the supplied string 
+        /// is less than zero or greater than the length of the string
+        /// </exception>
+        /// <remarks>The parameter is assumed to be in base 10</remarks>
         public BigNumber(string num)
         {
-            throw new NotImplementedException("Not yet finished");
             if (string.IsNullOrEmpty(num) || !num.IsValidNumber())
-                throw new ArgumentException("Parameter must only consist of digits 0..9");
+                throw new ArgumentException("Parameter must only consist of digits [-]0..9");
             else
             {
                 num = num.Trim();
-                //TODO reverse the string - blir fel på "MSB"
-                //num = num.Reverse();
-                
-                uint digit;
+                if (num.Left(1) == "-")
+                {
+                    num = num.Substring(1);
+                    IsNegative = true;
+                }
+                else
+                    IsNegative = false;
+
                 ulong val = 0;
-                uint lastVal = 0;
+                uint rem = 0;
+
+                /*
+                        public BigNumber(ulong num)
+                        {
+                            while(num > 0)
+                            {
+                                uint rem = (uint)(num % BASE);
+                                num = num / BASE;
+                                _number.Add(rem);
+                            }
+                            if (_number.Count == 0)
+                                _number.Add(0);
+                        }
+                */
 
                 while (num != string.Empty)
                 {
-                    digit = uint.Parse(num.Right(1)); // this amounts to "digit = num MOD 10"
-                    num = num.Left(num.Length - 1); // this amounts to "num = num DIV 10"
-                    lastVal = (uint)val;
-                    val = 10 * val + digit;
+                    rem = uint.Parse(num.Right(1)); // "rem = num MOD 10"
+                    _number.Add(rem);
+
+                    num = num.Left(num.Length - 1); // "num = num DIV 10"
+                    val = 10 * val + rem; // always 10, regardless of BASE
                     if (val > HALFWORDMAX)
                     {
-                        _number.Add((uint)val - HALFWORDMAX);
-                        val = digit;
+                        val = val / BASE;
                     }
                 }
-                if (val > 0)
-                    _number.Add((uint)val);
             }
         }
 
@@ -123,6 +142,20 @@ namespace BIGNUM
             Trim();
         }
 
+        /// <summary>
+        /// Convenience constructor for laborating with small numbers
+        /// </summary>
+        public BigNumber(ulong num)
+        {
+            while(num > 0)
+            {
+                uint rem = (uint)(num % BASE);
+                num = num / BASE;
+                _number.Add(rem);
+            }
+            if (_number.Count == 0)
+                _number.Add(0);
+        }
         #endregion
 
         #region Properties
@@ -173,7 +206,9 @@ namespace BIGNUM
                 // here we pad the number with leading zeros to make it
                 // ten digits long, equal to the decimal equivalent of
                 // 0xFFFFFFFF, i.e. uint.MaxValue.ToString().Length
-                res = _number[i].ToString("D10") + res;
+                //REAL CASE: res = _number[i].ToString("D10") + res;
+                //HACK while we laborate with 10 as base, we don't put any leading zeros in front of each number
+                res = _number[i].ToString("D") + res;
             }
 
             if (IsNegative)
@@ -253,6 +288,12 @@ namespace BIGNUM
             return res;
         }
 
+        /// <summary>
+        /// subtraction operator for two BigNumbers
+        /// </summary>
+        /// <param name="lhs">left hand side of the operation</param>
+        /// <param name="rhs">right hand side of the operation</param>
+        /// <returns>the resultant BigNumber</returns>
         public static BigNumber operator-(BigNumber lhs, BigNumber rhs)
         {
             if (lhs < rhs)
@@ -310,9 +351,69 @@ namespace BIGNUM
                 throw;
             }
         }
+
+        /// <summary>
+        /// multiplication operator for two BigNumbers
+        /// </summary>
+        /// <param name="lhs">left hand side of the operation</param>
+        /// <param name="rhs">right hand side of the operation</param>
+        /// <returns>the resultant BigNumber</returns>
+        public static BigNumber operator*(BigNumber lhs, BigNumber rhs)
+        {
+            throw new NotImplementedException("we are almost done");
+            // The number having the longest list determines the size
+            // of the resulting list
+            lhs.Trim();
+            rhs.Trim();
+            int newSize = lhs.Size + rhs.Size;
+            List<uint> resList = new List<uint>(newSize);
+            uint carry = 0;
+
+            // fill up the list with empty slots (needed for the [] operator below to succeed
+            for (int i = 0; i < newSize; i++)
+                resList.Add(0);
+
+            for (int iRhs = 0; iRhs < rhs.Size; iRhs++)
+            {
+                carry = 0;
+                for (int iLhs = 0; iLhs < lhs.Size; iLhs++)
+                {
+                    ulong fact = (ulong)lhs.Number[iLhs] * (ulong)rhs.Number[iRhs] + carry;
+                    uint val = (uint)(fact % BASE);
+
+                    resList[iRhs + iLhs] += val;
+                    carry = (uint)(fact / BASE);
+                }
+            }
+            BigNumber res = new BigNumber(resList);
+            return res;
+        }
+
+        /// <summary>
+        /// Increment operator
+        /// </summary>
+        public static BigNumber operator++(BigNumber num)
+        {
+            BigNumber one = new BigNumber(1);
+
+            num = num + one;
+            return num;
+        }
+
+        /// <summary>
+        /// Decrement operator
+        /// </summary>
+        public static BigNumber operator --(BigNumber num)
+        {
+            BigNumber one = new BigNumber(1);
+
+            num = num - one;
+            return num;
+        }
+
         #endregion
 
-        #region Operators
+        #region Comparison operators
 
         /// <summary>
         /// Unary minus
@@ -400,10 +501,10 @@ namespace BIGNUM
             // Both are of equal sizes.
             for (int i = lhs.Number.Count - 1; i >= 0; i--)
             {
-                if (lhs.Number[i] < rhs.Number[i])
-                    return true;
+                if (lhs.Number[i] > rhs.Number[i])
+                    return false;
             }
-            return false; // all numbers are equal
+            return true; // all numbers are equal
         }
 
         /// <summary>
@@ -428,8 +529,26 @@ namespace BIGNUM
         /// </summary>
         public static bool operator!=(BigNumber lhs, BigNumber rhs)
         {
-            //TODO optimize this
+        //TODO optimize this
             return !(lhs == rhs);
+        }
+
+        /// <summary>
+        /// allows for assignment of a string to an already allocated BigNumber
+        /// </summary>
+        /// <param name="num">the string</param>
+        /// <exception cref="ArgumentNullException">thrown when the parameter is null</exception>
+        /// <exception cref="ArgumentException">thrown when the argument does contain other than [-]0..9</exception>
+        public static implicit operator BigNumber(string num)
+        {
+            if (string.IsNullOrEmpty(num))
+                throw new ArgumentNullException("Attempt to assign the BigNumber to a null value");
+            if (!num.IsValidNumber())
+                throw new ArgumentException("Parameter must only consist of digits [-]0..9");
+
+            BigNumber res = new BigNumber(num);
+
+            return res;
         }
 
         #endregion

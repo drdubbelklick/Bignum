@@ -37,6 +37,7 @@ namespace BIGNUM
         {
             BigNumber a,b,c;
             bool answer = false;
+            string t = string.Empty;
 
             try
             {
@@ -44,19 +45,23 @@ namespace BIGNUM
                 List<uint> lb = new List<uint>();
 
                 //la.Add( (uint)((ulong)0xFFFFFFFF % BigNumber.BASE) ); la.Add((uint)((ulong)0xFFFFFFFF / BigNumber.BASE));
-                la.Add(9); la.Add(1); la.Add(0); la.Add(1); la.Add(0);
-                lb.Add(10); //lb.Add(1);
-                
-                a = new BigNumber(la);
-                
-                b = new BigNumber(lb);
+                la.Add(9); la.Add(1); 
+                lb.Add(5); lb.Add(4);
 
-                answer = a >= b;
-                //c = -(b - a);
-                
+                //a = "451";
+                //a = new BigNumber(450);
+                //b = new BigNumber("450");
+                //t = a.ToString();
+                //t = b.ToString();
+                ////t = b.ToString();
+
+                ////c = a * b;
+                //t = c.ToString();
+
                 //string t = c.ToString();
-                //a = new BigNumber("5123456789");
-                //b = new BigNumber("5123456789");
+                //a = "5123456789";
+                a = "5123456789";
+                t = a.ToString();
             }
             catch (ArgumentException ex)
             {
