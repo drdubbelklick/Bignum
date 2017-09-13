@@ -69,14 +69,19 @@ namespace BIGNUM
         ///     thrown if there are characters other than [-]0..9 
         ///     in the input argument
         /// </exception>
+        /// <exception cref="ArgumentNullException">
+        /// thrown if the parameter is null or the empty string
+        /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// thrown when the index to the Substring call on the supplied string 
+        /// thrown if the index to the Substring call on the supplied string 
         /// is less than zero or greater than the length of the string
         /// </exception>
         /// <remarks>The parameter is assumed to be in base 10</remarks>
         public BigNumber(string num)
         {
-            if (string.IsNullOrEmpty(num) || !num.IsValidNumber())
+            if (string.IsNullOrEmpty(num))
+                throw new ArgumentNullException("num is null or the empty string");
+            if (!num.IsValidNumber())
                 throw new ArgumentException("Parameter must only consist of digits [-]0..9");
             else
             {
@@ -89,8 +94,6 @@ namespace BIGNUM
                 else
                     IsNegative = false;
 
-                ulong val = 0;
-                uint rem = 0;
 
                 /*
                         public BigNumber(ulong num)
@@ -105,12 +108,16 @@ namespace BIGNUM
                                 _number.Add(0);
                         }
                 */
+                ulong val = 0;
+                uint rem = 0;
+                ulong quo = 0;
+                ulong remainder = 0;
 
                 while (num != string.Empty)
                 {
                     rem = uint.Parse(num.Right(1)); // "rem = num MOD 10"
+                    remainder = 10 * remainder + rem;
                     _number.Add(rem);
-
                     num = num.Left(num.Length - 1); // "num = num DIV 10"
                     val = 10 * val + rem; // always 10, regardless of BASE
                     if (val > HALFWORDMAX)
@@ -118,6 +125,7 @@ namespace BIGNUM
                         val = val / BASE;
                     }
                 }
+                Compress();
             }
         }
 
@@ -147,6 +155,8 @@ namespace BIGNUM
         /// </summary>
         public BigNumber(ulong num)
         {
+            //TODO this implementation suffers from the same problem 
+            // as constructor BigNumber(string) has
             while(num > 0)
             {
                 uint rem = (uint)(num % BASE);
@@ -206,14 +216,55 @@ namespace BIGNUM
                 // here we pad the number with leading zeros to make it
                 // ten digits long, equal to the decimal equivalent of
                 // 0xFFFFFFFF, i.e. uint.MaxValue.ToString().Length
-                //REAL CASE: res = _number[i].ToString("D10") + res;
-                //HACK while we laborate with 10 as base, we don't put any leading zeros in front of each number
-                res = _number[i].ToString("D") + res;
+                res = _number[i].ToString("D10") + res;
+                //while we laborate with 10 as base, we don't put any leading zeros in front of each number
+                //res = _number[i].ToString("D") + res;
             }
 
             if (IsNegative)
                 res = "-" + res;
             return res;
+        }
+
+        /// <summary>
+        /// Given a base 10 number that has one digit per slot in
+        /// the _number list, we compress it to HALFWORDMAX digits large
+        /// numbers
+        /// </summary>
+        void Compress()
+        {
+            ulong tmp = 0;
+            uint rem = 0;
+            ulong quo = 0;
+
+            List<uint> res = new List<uint>();
+            int i;
+
+            Trim();
+            if (_number.Count == 1 && _number[0] == 0)
+                return; // nothing to do - the Trim() has done its job
+
+            i = 0;
+            
+            while (i < _number.Count)
+            {
+                tmp = 10 * tmp + _number[i];
+                
+                if (tmp > HALFWORDMAX)
+                {
+                    quo = tmp / BASE;
+                    rem = (uint)(tmp % BASE);
+                    tmp = 0;
+                
+                    res.Add(rem);
+                    tmp = quo;
+                    for (int k = 0; k < i; k++)
+                        _number.RemoveAt(0);
+                    i = -1; //start at the first element (we do i++ below)
+                }
+                i++;
+            }
+            //TODO: något måste göras här på slutet om tmp har ett värde
         }
 
         /// <summary>
@@ -237,6 +288,10 @@ namespace BIGNUM
                 _number.RemoveAt(nSize - 1);
                 nSize--;
             }
+            // the number must contain at least one element
+            // (lots of functions depend on it)
+            if (_number.Count == 0)
+                _number.Add(0);
         }
 
         #region Arithmetics

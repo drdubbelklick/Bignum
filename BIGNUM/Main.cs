@@ -45,8 +45,8 @@ namespace BIGNUM
                 List<uint> lb = new List<uint>();
 
                 //la.Add( (uint)((ulong)0xFFFFFFFF % BigNumber.BASE) ); la.Add((uint)((ulong)0xFFFFFFFF / BigNumber.BASE));
-                la.Add(9); la.Add(1); 
-                lb.Add(5); lb.Add(4);
+                //la.Add(9); la.Add(1); 
+                //lb.Add(5); lb.Add(4);
 
                 //a = "451";
                 //a = new BigNumber(450);
@@ -60,8 +60,10 @@ namespace BIGNUM
 
                 //string t = c.ToString();
                 //a = "5123456789";
-                a = "5123456789";
-                t = a.ToString();
+                //la.Add(828489493); la.Add(1);
+                //a = new BigNumber(la);
+                //a = "5123456789";
+                //t = a.ToString();
             }
             catch (ArgumentException ex)
             {
