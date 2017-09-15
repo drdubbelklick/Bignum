@@ -19,14 +19,18 @@ namespace BIGNUM
         /// <summary>
         /// Largest unsigned integer we store in each slot
         /// </summary>
+        
+#if THOMAS
+        static uint HALFWORDMAX = (uint)9;
+#else
         static uint HALFWORDMAX = (uint)0xFFFFFFFF;
-        //static uint HALFWORDMAX = (uint)9;
+#endif
+
         /// <summary>
         /// the base of our operation
         /// </summary>
         public static ulong BASE = (ulong)HALFWORDMAX + (ulong)1;
-
-        #region Properties
+#region Properties
 
         /// <summary>
         /// Returns true if the number is even else false
@@ -49,9 +53,9 @@ namespace BIGNUM
         /// </summary>
         public bool IsNegative { get; set; }
 
-        #endregion
+#endregion
 
-        #region Constructors
+#region Constructors
 
         /// <summary>
         /// default constructor, that 
@@ -147,7 +151,7 @@ namespace BIGNUM
             if (numList == null)
                 throw new ArgumentNullException("Input list is null");
             _number.AddRange(numList);
-            Trim();
+            //Trim();
         }
 
         /// <summary>
@@ -166,9 +170,9 @@ namespace BIGNUM
             if (_number.Count == 0)
                 _number.Add(0);
         }
-        #endregion
+#endregion
 
-        #region Properties
+#region Properties
 
         /// <summary>
         /// Property for outside access to the internal list of integers composing this BigNumber.
@@ -199,7 +203,7 @@ namespace BIGNUM
             }
         }
 
-        #endregion
+#endregion
 
         /// <summary>
         /// Overrides ToString()
@@ -216,7 +220,12 @@ namespace BIGNUM
                 // here we pad the number with leading zeros to make it
                 // ten digits long, equal to the decimal equivalent of
                 // 0xFFFFFFFF, i.e. uint.MaxValue.ToString().Length
-                res = _number[i].ToString("D10") + res;
+#if THOMAS
+                res = _number[i].ToString("D") + res;
+#else
+            res = _number[i].ToString("D10") + res;
+#endif
+
                 //while we laborate with 10 as base, we don't put any leading zeros in front of each number
                 //res = _number[i].ToString("D") + res;
             }
@@ -294,7 +303,7 @@ namespace BIGNUM
                 _number.Add(0);
         }
 
-        #region Arithmetics
+#region Arithmetics
 
         /// <summary>
         /// addition operator for two BigNumbers
@@ -308,11 +317,11 @@ namespace BIGNUM
             // of the resulting list
             lhs.Trim();
             rhs.Trim();
-            int newSize = Math.Max(lhs.Size, rhs.Size);
-            List<uint> resList = new List<uint>(newSize + 1); // add one for a possible carry
+            int newSize = Math.Max(lhs.Size, rhs.Size) + 1;
+            List<uint> resList = new List<uint>(newSize);
             uint carry = 0;
 
-            for (int i = 0; i < newSize+1; i++)
+            for (int i = 0; i < newSize; i++)
             {
                 uint valLhs, valRhs;
                 ulong val;
@@ -326,12 +335,12 @@ namespace BIGNUM
                 else
                     valRhs = rhs.Number[i];
 
-                val = (ulong)valLhs + (ulong)valRhs + carry;                
+                val = valLhs + valRhs + carry;                
 
-                if ((ulong)val > HALFWORDMAX)
+                if (val > HALFWORDMAX)
                 {
-                    carry = 1;
-                    val -= HALFWORDMAX;
+                    carry = (uint)(val / BASE);
+                    val = val % BASE;
                 }
                 else
                 {
@@ -339,6 +348,7 @@ namespace BIGNUM
                 }
                 resList.Add((uint)val);
             }
+
             BigNumber res = new BigNumber(resList);
             return res;
         }
@@ -389,7 +399,7 @@ namespace BIGNUM
                     {
                         borrow = 0;
                     }
-                    Debug.Assert(diff >= 0 && diff <= uint.MaxValue);
+                    Debug.Assert(diff >= 0 && diff <= HALFWORDMAX);
                     resList.Add((uint)diff);
                 }
                 Debug.Assert(borrow == 0, "Error in implementation of binary - : there should not be any borrow at the end of the loop.");
@@ -415,32 +425,59 @@ namespace BIGNUM
         /// <returns>the resultant BigNumber</returns>
         public static BigNumber operator*(BigNumber lhs, BigNumber rhs)
         {
-            throw new NotImplementedException("we are almost done");
             // The number having the longest list determines the size
             // of the resulting list
             lhs.Trim();
             rhs.Trim();
-            int newSize = lhs.Size + rhs.Size;
-            List<uint> resList = new List<uint>(newSize);
+            if (lhs.Size < rhs.Size)
+                return rhs * lhs;
+            int newSize = lhs.Size + rhs.Size + 2; // add one for each operand's plausible carry
+            List<uint> row = new List<uint>(newSize);
+            List<uint> sum = new List<uint>(newSize);
+            BigNumber rowNumber;
+            BigNumber totalSum;
             uint carry = 0;
 
-            // fill up the list with empty slots (needed for the [] operator below to succeed
+            // fill up the lists with empty slots (needed for the [] operator below to succeed
             for (int i = 0; i < newSize; i++)
-                resList.Add(0);
+                row.Add(0);
+
+            for (int i = 0; i < newSize; i++)
+                sum.Add(0);
+            totalSum = new BigNumber(sum);
 
             for (int iRhs = 0; iRhs < rhs.Size; iRhs++)
             {
                 carry = 0;
+                // clear the row before each run. 
+                // row.Clear() removes the elements, and we
+                // want to keep them, just set them to zero
+                for (int i = 0; i < newSize; i++)
+                    row[i] = 0;
                 for (int iLhs = 0; iLhs < lhs.Size; iLhs++)
                 {
-                    ulong fact = (ulong)lhs.Number[iLhs] * (ulong)rhs.Number[iRhs] + carry;
-                    uint val = (uint)(fact % BASE);
+                    ulong fact = (ulong)lhs.Number[iLhs] * (ulong)rhs.Number[iRhs] + (ulong)carry;
+                    uint mod = (uint)(fact % BASE);
 
-                    resList[iRhs + iLhs] += val;
-                    carry = (uint)(fact / BASE);
+                    row[iLhs + iRhs] = mod;
+
+                    if (fact > (ulong)HALFWORDMAX)
+                    {
+                        carry = (uint)(fact / BASE);
+                    }
+                    else
+                    {
+                        carry = 0;
+                    }
                 }
+                if (carry > 0)
+                    row[iRhs + lhs.Size] = carry;
+                rowNumber = new BigNumber(row);
+                totalSum += rowNumber;
             }
-            BigNumber res = new BigNumber(resList);
+
+            BigNumber res = new BigNumber(totalSum);
+
             return res;
         }
 
@@ -466,9 +503,9 @@ namespace BIGNUM
             return num;
         }
 
-        #endregion
+#endregion
 
-        #region Comparison operators
+#region Comparison operators
 
         /// <summary>
         /// Unary minus
@@ -606,6 +643,6 @@ namespace BIGNUM
             return res;
         }
 
-        #endregion
+#endregion
     }
 }

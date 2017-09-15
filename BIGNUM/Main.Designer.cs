@@ -91,6 +91,7 @@
             this.Controls.Add(this.primesListBox);
             this.Controls.Add(this.numberToFactorizeLabel);
             this.Name = "Factorization";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Factorization";
             ((System.ComponentModel.ISupportInitialize)(this.numberToFactorize)).EndInit();
             this.ResumeLayout(false);

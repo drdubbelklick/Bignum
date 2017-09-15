@@ -63,7 +63,14 @@ namespace BIGNUM
                 //la.Add(828489493); la.Add(1);
                 //a = new BigNumber(la);
                 //a = "5123456789";
-                //t = a.ToString();
+                la.Add(3); la.Add(2); la.Add(1); la.Add(9);
+                lb.Add(9); //lb.Add(5); lb.Add(1);
+                a = new BigNumber(la);
+                b = new BigNumber(lb);
+                c = a * b;
+                t = c.ToString();
+
+                string s = t;
             }
             catch (ArgumentException ex)
             {
