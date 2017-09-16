@@ -240,15 +240,15 @@ namespace BIGNUM
         /// the _number list, we compress it to HALFWORDMAX digits large
         /// numbers
         /// </summary>
-        void Compress()
+        public void Compress() //TODO: change accesibility back to private
         {
-            ulong tmp = 0;
+            ulong fact = 0;
             uint rem = 0;
             ulong quo = 0;
-
             List<uint> res = new List<uint>();
             int i;
 
+            //TODO vet inte vad som skulle stå på den här raden
             Trim();
             if (_number.Count == 1 && _number[0] == 0)
                 return; // nothing to do - the Trim() has done its job
@@ -257,19 +257,19 @@ namespace BIGNUM
             
             while (i < _number.Count)
             {
-                tmp = 10 * tmp + _number[i];
+                fact = 10 * fact + _number[i];
                 
-                if (tmp > HALFWORDMAX)
+                if (fact > HALFWORDMAX)
                 {
-                    quo = tmp / BASE;
-                    rem = (uint)(tmp % BASE);
-                    tmp = 0;
+                    quo = fact / BASE;
+                    rem = (uint)(fact % BASE);
                 
                     res.Add(rem);
                     tmp = quo;
                     for (int k = 0; k < i; k++)
                         _number.RemoveAt(0);
-                    i = -1; //start at the first element (we do i++ below)
+
+                    i = -1; //start at the first element (we do i++ in the while loop number.below)
                 }
                 i++;
             }
@@ -287,7 +287,7 @@ namespace BIGNUM
         /// the underlying data structure for BigNumber or
         /// there is no data in the underlying data structure at all
         /// </exception>
-        void Trim()
+        public void Trim()
         {
             int nSize = _number.Count;
             if (nSize == 0)

@@ -67,10 +67,10 @@ namespace BIGNUM
                 lb.Add(9); //lb.Add(5); lb.Add(1);
                 a = new BigNumber(la);
                 b = new BigNumber(lb);
-                c = a * b;
-                t = c.ToString();
+                a.Trim();
+                t = a.ToString();
 
-                string s = t;
+                c = a;
             }
             catch (ArgumentException ex)
             {
