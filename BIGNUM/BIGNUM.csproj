@@ -74,7 +74,14 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="Doc\Bitwise operations.pdf" />
     <None Include="Doc\bugs.xlsx" />
+    <None Include="Doc\IMPLY.pdf" />
+    <None Include="Doc\NAND logic.pdf" />
+    <None Include="Doc\NOR.pdf" />
+    <None Include="Doc\Truth Tables.docx" />
+    <None Include="Doc\XNOR-XAND.pdf" />
+    <None Include="Doc\XOR.pdf" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

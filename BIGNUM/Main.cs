@@ -45,9 +45,13 @@ namespace BIGNUM
                 List<uint> lb = new List<uint>();
 
                 //la.Add( (uint)((ulong)0xFFFFFFFF % BigNumber.BASE) ); la.Add((uint)((ulong)0xFFFFFFFF / BigNumber.BASE));
-                //la.Add(9); la.Add(1); 
-                //lb.Add(5); lb.Add(4);
+                la.Add(9); la.Add(1);
+                lb.Add(1);
 
+                a = new BigNumber(la);
+                b = new BigNumber(lb);
+                c = a.NAND(b);
+                t = c.ToString();
                 //a = "451";
                 //a = new BigNumber(450);
                 //b = new BigNumber("450");
@@ -63,14 +67,34 @@ namespace BIGNUM
                 //la.Add(828489493); la.Add(1);
                 //a = new BigNumber(la);
                 //a = "5123456789";
-                la.Add(3); la.Add(2); la.Add(1); la.Add(9);
-                lb.Add(9); //lb.Add(5); lb.Add(1);
-                a = new BigNumber(la);
-                b = new BigNumber(lb);
-                a.Trim();
-                t = a.ToString();
+                la.Add(0x0000000D); //la.Add(1); la.Add(9);
+                lb.Add(0x0000001B); //lb.Add(9); //lb.Add(99);
+                /*
+                uint xx = 13;
+                uint r = 0;
+                for (int i = 0; i < 4; i++)
+                {
+                    r = (r << 1) | (xx & 1);
+                    xx >>= 1;
+                }
+                */
 
-                c = a;
+                //b = new BigNumber(lb);
+                //a = "5123456789";
+                //a = "10";
+                //b = "11";
+                //c = a.OR(b);
+                //a.Compress();
+                //b = "-1"; //nu blir det kul!
+                //c = a * b;
+                //t = c.ToString();
+                //c = a;
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                MessageBox.Show(ex.Message,
+                    Properties.Settings.Default.ProgramName + " ArgumentOutOfRangeException",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (ArgumentException ex)
             {
@@ -88,6 +112,12 @@ namespace BIGNUM
             {
                 MessageBox.Show(ex.Message,
                     Properties.Settings.Default.ProgramName + " FormatException",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch(ArithmeticException ex)
+            {
+                MessageBox.Show(ex.Message,
+                    Properties.Settings.Default.ProgramName + " ArithmeticException",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)

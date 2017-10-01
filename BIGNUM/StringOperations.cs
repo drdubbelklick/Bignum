@@ -55,19 +55,31 @@ namespace BIGNUM
         }
 
         /// <summary>
-        ///     checks if all characters in supplied argument are 0..9
+        ///     checks if all characters in supplied argument are [-]0..9
         ///     and returns true, else false
         /// </summary>
         /// <param name="me">instance to examine</param>
-        /// <returns>true if all characters in the string 
-        ///     are 0..9 else false
+        /// <returns>
+        ///     true if all characters in the string 
+        ///     are [-]0..9 else false
         /// </returns>
         public static bool IsValidNumber(this string me)
         {
-            foreach (char ch in me)
+            int i = 0;
+            //bool isNegative = false;
+
+            if (me[0] == '-')
             {
+                //isNegative = true;
+                i++;
+            }
+            while (i < me.Length)
+            {
+                char ch = me[i];
+
                 if (!char.IsDigit(ch))
                     return false;
+                i++;
             }
             return true;
         }
